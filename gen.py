@@ -13,7 +13,7 @@ def create_ind(length_chrom):
 def create_population(population_size, length_chrom):
     population = []
     for ind in range(population_size):
-        population.append([random.uniform(-1.0, 1.0) for _ in range(length_chrom)])
+        population.append(create_ind(length_chrom))
 
     return population
 

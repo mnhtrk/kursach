@@ -8,10 +8,10 @@ class NN:
         self.layers_len = layers
 
         self.layers.append(np.array([]))
-        self.acts.append(self.relu)
+        self.acts.append(self.sigmoid)
         for i in range(len(layers[1])):
             self.layers.append(np.array([]))
-            self.acts.append(self.relu)
+            self.acts.append(self.sigmoid)
         self.acts[-1] = self.softmax
 
 
