@@ -448,11 +448,6 @@ class Evol(Env):
 
     # коллизия при спавне
     def spawn_check(self, x, y):
-        for population in self.populations:
-            for agent in population:
-                if x == agent.x and y == agent.y:
-                    return True
-
         if 5 <= self.field[y][x].color <= 7:
             return True
 
