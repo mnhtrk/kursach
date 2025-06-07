@@ -1,10 +1,10 @@
 import pygame.event
 from matplotlib import pyplot as plt
 import pygame
-from params import WINDOW_SIZE, SIZE, TEAMS, CONC, MAX_HP
+from params import WINDOW_SIZE, SIZE, TEAMS, CONC, MAX_HP, GAMES, TIME_LIMIT
 import joblib
 
-TIME = 10
+TIME = 1000
 
 pix_square_size = int(WINDOW_SIZE / SIZE)
 pygame.init()
@@ -69,11 +69,25 @@ def render(time, frame):
     clock.tick(time)
 
 # recorded_train_games.sav
-recorded_games = joblib.load("recorded_train_games.sav")
+recorded_games = joblib.load("sav/recorded_train_games.sav")
 # train_scores.sav
-team_scores_total = joblib.load("train_scores.sav")
+team_scores_total = joblib.load("sav/train_scores.sav")
+# moves_per_game.sav
+moves_per_game = joblib.load("sav/moves_per_game.sav")
+# max_score_per_game.sav
+max_score_per_game = joblib.load("sav/max_score_per_game.sav")
+# avg_score_per_game.sav
+avg_score_per_game = joblib.load("sav/avg_score_per_game.sav")
 
+game_count = 0
 for game in recorded_games:
+    if GAMES < 10:
+        if game_count == 0:
+            print("Игра", game_count)
+        else:
+            print("Игра", GAMES)
+    else:
+        print("Игра", game_count * GAMES // 10)
     canvas.fill((0, 0, 0))
     frame = 0
     done = False
@@ -85,6 +99,7 @@ for game in recorded_games:
         frame += 1
         if frame == len(game):
             done = True
+    game_count += 1
 
 # график обучения
 for i in range(TEAMS):
@@ -103,4 +118,45 @@ for i in range(TEAMS):
 
 plt.xlabel('Игра')
 plt.ylabel('Количество закрашенных клеток')
+plt.ylim(top=(SIZE*SIZE))
+plt.show()
+
+# график кол-ва ходов
+plt.plot(moves_per_game, color=(1, 0, 0))
+plt.xlabel('Игра')
+plt.ylabel('Количество шагов')
+plt.ylim(top=(TIME_LIMIT))
+plt.show()
+
+# график макс. и сред. значения очков в команде
+for i in range(TEAMS):
+    max_score = []
+    for j in range(len(max_score_per_game)):
+        max_score.append(max_score_per_game[j][i])
+    if i == 0:
+        color = (1, 1, 0)
+    elif i == 1:
+        color = (0, 1, 0)
+    elif i == 2:
+        color = (0, 1, 1)
+    elif i == 3:
+        color = (0, 0, 1)
+    plt.plot(max_score, color=color)
+
+for i in range(TEAMS):
+    avg_score = []
+    for j in range(len(avg_score_per_game)):
+        avg_score.append(avg_score_per_game[j][i])
+    if i == 0:
+        color = (0.5, 0.5, 0)
+    elif i == 1:
+        color = (0, 0.5, 0)
+    elif i == 2:
+        color = (0, 0.5, 0.5)
+    elif i == 3:
+        color = (0, 0, 0.5)
+    plt.plot(avg_score, color=color)
+
+plt.xlabel('Игра')
+plt.ylabel('Количество очков')
 plt.show()

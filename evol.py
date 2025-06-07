@@ -623,10 +623,10 @@ class Evol(Env):
 
 
     # награды
-    # +1 за атаку на вражеское поле, +2 за усиление своего поля, +4 за атаку на красное поле / +1 при максимальном хп,
+    # +1 за атаку на вражеское поле, +2 за усиление своего поля, +5 за атаку на красное поле / -5 при максимальном хп,
     # еще +2, если при перекраске рядом находится союзник
 
-    # +2 * макс. концентрацию за каждое перекрашенное вражеское поле при использовании скила
+    # +CONC за каждое перекрашенное вражеское поле при использовании скила
 
     # +20 за уничтожение врага, еще +20, если при уничтожении рядом находится союзник
 
@@ -728,9 +728,9 @@ class Evol(Env):
                                 for j in range(agent.x - SKILL_RADIUS + abs(circ_off), agent.x + SKILL_RADIUS - abs(circ_off) + 1):
                                     if -1 < i < SIZE and -1 < j < SIZE:
                                         if self.field[i][j].color != 5 and self.field[i][j].color != 6:
-                                            if self.field[i][j].color != agent.color:
-                                                agent.score += 2 * CONC
-                                                agent.total_score += 2 * CONC
+                                            if self.field[i][j].color != agent.color and self.field[i][j].color != 7:
+                                                agent.score += CONC
+                                                agent.total_score += CONC
                                             self.field[i][j].color = agent.color
                                             self.field[i][j].conc = CONC
                                 circ_off -= 1
@@ -749,30 +749,38 @@ class Evol(Env):
                         # изменение цвета клетки
                         if (self.field[agent.y][agent.x].color != agent.color or
                             self.field[agent.y][agent.x].color == agent.color and self.field[agent.y][agent.x].conc < CONC):
-                            agent.score += 1
-                            agent.total_score += 1
-                            agent.hp += 1
-                            if self.field[agent.y][agent.x].color == agent.color and self.field[agent.y][agent.x].conc < CONC:
-                                agent.score += 1
-                                agent.total_score += 1
-                                agent.hp += 3
-                            if self.field[agent.y][agent.x].color == 7:
-                                agent.hp += 6
-                                if agent.hp <= MAX_HP:
-                                    agent.score += 3
-                                    agent.total_score += 3
-                            if agent.hp > MAX_HP:
-                                agent.hp = MAX_HP
-
                             teammate_near = False
                             for j in range(20, 28):
                                 if agent.observation[j] == 1:
                                     teammate_near = True
                                     break
 
-                            if teammate_near:
-                                agent.score += 2
-                                agent.total_score += 2
+                            if self.field[agent.y][agent.x].color == 7:
+                                agent.hp += 6
+                                if agent.hp <= MAX_HP:
+                                    agent.score += 5
+                                    agent.total_score += 5
+                                    if teammate_near:
+                                        agent.score += 2
+                                        agent.total_score += 2
+                                else:
+                                    agent.score -= 5
+                                    agent.total_score -= 5
+                            else:
+                                agent.score += 1
+                                agent.total_score += 1
+                                agent.hp += 1
+                                if self.field[agent.y][agent.x].color == agent.color and self.field[agent.y][agent.x].conc < CONC:
+                                    agent.score += 1
+                                    agent.total_score += 1
+                                    agent.hp += 3
+                                if teammate_near:
+                                    agent.score += 2
+                                    agent.total_score += 2
+
+                            if agent.hp > MAX_HP:
+                                agent.hp = MAX_HP
+
 
                         for i in range(self.teams):
                             # уничтожение агента другого цвета
