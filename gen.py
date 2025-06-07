@@ -1,8 +1,7 @@
 import random
+from params import RANDOM_SEED
 
-RANDOM_SEED = 42
 random.seed(RANDOM_SEED)
-
 
 # случайная хромосома
 def create_ind(length_chrom):
