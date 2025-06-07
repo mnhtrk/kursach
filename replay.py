@@ -159,4 +159,5 @@ for i in range(TEAMS):
 
 plt.xlabel('Игра')
 plt.ylabel('Количество очков')
+plt.ylim(bottom=-(10 *TIME_LIMIT), top=(10 * TIME_LIMIT))
 plt.show()

@@ -17,7 +17,7 @@ LENGTH_CHROM = network.get_total_weights()  # количество генов в
 random.seed(RANDOM_SEED)
 
 SIM_TIME = 100000  # скорость отрисовки окружения
-RENDER = True  # рендер процесса обучения
+RENDER = False  # рендер процесса обучения
 TRAIN = True  # обучение модели / запуск симуляции с обученной моделью
 
 selection_methods = [gen.selection_tourn, gen.selection_sus, gen.selection_ranked]
@@ -176,6 +176,7 @@ if TRAIN:
 
     plt.xlabel('Игра')
     plt.ylabel('Количество очков')
+    plt.ylim(bottom=-(2 *TIME_LIMIT), top=(2 * TIME_LIMIT))
     plt.show()
 
     env.close()
