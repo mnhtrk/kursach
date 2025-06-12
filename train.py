@@ -18,7 +18,6 @@ random.seed(RANDOM_SEED)
 
 SIM_TIME = 100000  # скорость отрисовки окружения
 RENDER = False  # рендер процесса обучения
-TRAIN = True  # обучение модели / запуск симуляции с обученной моделью
 
 selection_methods = [gen.selection_tourn, gen.selection_sus, gen.selection_ranked]
 mate_methods = [gen.mate_bin, gen.mate_uni, gen.mate_blend]
@@ -29,7 +28,6 @@ if TRAIN:
     for i in range(TEAMS):
         populations_weights.append(gen.create_population(LENGTH_CHROM))
 
-
     # запуск окружения
     env = evol.Evol(populations_weights, network, LENGTH_CHROM, RENDER)
 
@@ -38,7 +36,6 @@ if TRAIN:
     moves_per_game = []
     max_score_per_game = []
     avg_score_per_game = []
-    recorded_games = []
     for i in range(GAMES):
         count = 0
         done = False
@@ -72,11 +69,19 @@ if TRAIN:
 
         moves_per_game.append(len(recorded_game))
 
-        if GAMES < 10:
+        if GAMES < SAVED_GAMES + 1:
             if i == 0 or i == GAMES:
-                recorded_games.append(recorded_game)
-        elif (i + 1) % (GAMES // 10) == 0 or i == 0:
-            recorded_games.append(recorded_game)
+                if i == 0:
+                    path = "rep/0.sav"
+                else:
+                    path = "rep/1.sav"
+                joblib.dump(recorded_game, path)
+        elif i % (GAMES // SAVED_GAMES) == 0 or i == GAMES - 1:
+            if i == GAMES - 1:
+                path = "rep/" + str((i + 1) // (GAMES // SAVED_GAMES)) + ".sav"
+            else:
+                path = "rep/" + str(i // (GAMES // SAVED_GAMES)) + ".sav"
+            joblib.dump(recorded_game, path)
         info, done = env.get_info()
         painted_alive.append(info[:])
         weights_scores = env.get_weight_scores()
@@ -109,10 +114,10 @@ if TRAIN:
         team_scores_total.append(team_scores)
         max_score_per_game.append(max_scores)
         avg_score_per_game.append(avg_scores)
-        new_populations = env.get_next_game_populations(painted_alive[-1], TOURN_SIZE)
+        new_populations = env.get_next_game_populations(painted_alive[-1])
         env.reset(new_populations, RENDER)
 
-    joblib.dump(recorded_games, "sav/recorded_train_games.sav")
+
     joblib.dump(team_scores_total, "sav/train_scores.sav")
     joblib.dump(moves_per_game, "sav/moves_per_game.sav")
     joblib.dump(max_score_per_game, "sav/max_score_per_game.sav")
@@ -135,14 +140,14 @@ if TRAIN:
 
     plt.xlabel('Игра')
     plt.ylabel('Количество закрашенных клеток')
-    plt.ylim(top=(SIZE*SIZE))
+    plt.ylim(top=(SIZE*SIZE + 500))
     plt.show()
 
     # график кол-ва ходов
     plt.plot(moves_per_game, color=(1, 0, 0))
     plt.xlabel('Игра')
     plt.ylabel('Количество шагов')
-    plt.ylim(top=(TIME_LIMIT))
+    plt.ylim(top=(TIME_LIMIT + 500))
     plt.show()
 
     # график макс. и сред. значения очков в команде
@@ -176,7 +181,7 @@ if TRAIN:
 
     plt.xlabel('Игра')
     plt.ylabel('Количество очков')
-    plt.ylim(bottom=-(2 *TIME_LIMIT), top=(2 * TIME_LIMIT))
+    plt.ylim(bottom=-(2 *TIME_LIMIT + 500), top=(2 * TIME_LIMIT + 500))
     plt.show()
 
     env.close()
@@ -234,5 +239,5 @@ for i in range(TEAMS):
 
 plt.xlabel('Этапы')
 plt.ylabel('Количество закрашенных клеток')
-plt.ylim(top=(SIZE*SIZE))
+plt.ylim(top=(SIZE*SIZE + 500))
 plt.show()

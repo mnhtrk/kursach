@@ -495,7 +495,7 @@ class Evol(Env):
     # 5% новой популяции победившей команды состоит из рандомных особей из лучших 25% особей зала славы
     # 5% новой популяции остальных команд состоят из рандомных особей из остальных 75% особей зала славы
     # остальная часть всех популяций заполняется с помощью турнирного отбора всех особей всех команд
-    def get_next_game_populations(self, team_score_alive, tourn_size):
+    def get_next_game_populations(self, team_score_alive):
         team_score = []
         for i in range(self.teams):
             team_score.append(team_score_alive[i][0])
@@ -532,7 +532,7 @@ class Evol(Env):
 
             for j in range(transfered_agents, self.population_size):
                 new_ind = []
-                for k in range(tourn_size):
+                for k in range(TOURN_SIZE):
                     new_ind_index = random.randint(0, len(old_weights) - 1)
                     new_ind.append(old_weights[new_ind_index])
 

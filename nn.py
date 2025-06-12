@@ -65,15 +65,8 @@ class NN:
 
     # возвращает действие для агента
     def predict(self, inputs):
-        data = []
         f = inputs.astype('float64')
         for i in range(len(self.layers)):
-            data.append(f)
-            if i == len(self.layers) - 1:
-                f = self.acts[i](self.layers[i] @ f)
-                # data.append(soft_data)
-            else:
-                f = self.acts[i](self.layers[i] @ f)
+            f = self.acts[i](self.layers[i] @ f)
 
-        data.append(f)
         return f

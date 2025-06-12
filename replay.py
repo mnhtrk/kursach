@@ -1,10 +1,11 @@
 import pygame.event
 from matplotlib import pyplot as plt
 import pygame
-from params import WINDOW_SIZE, SIZE, TEAMS, CONC, MAX_HP, GAMES, TIME_LIMIT
+from params import WINDOW_SIZE, SIZE, TEAMS, CONC, MAX_HP, GAMES, TIME_LIMIT, SAVED_GAMES
 import joblib
 
-TIME = 1000
+TIME = 200
+OLD_REP = False
 
 pix_square_size = int(WINDOW_SIZE / SIZE)
 pygame.init()
@@ -68,8 +69,6 @@ def render(time, frame):
     pygame.display.update()
     clock.tick(time)
 
-# recorded_train_games.sav
-recorded_games = joblib.load("sav/recorded_train_games.sav")
 # train_scores.sav
 team_scores_total = joblib.load("sav/train_scores.sav")
 # moves_per_game.sav
@@ -79,27 +78,56 @@ max_score_per_game = joblib.load("sav/max_score_per_game.sav")
 # avg_score_per_game.sav
 avg_score_per_game = joblib.load("sav/avg_score_per_game.sav")
 
-game_count = 0
-for game in recorded_games:
-    if GAMES < 10:
-        if game_count == 0:
-            print("Игра", game_count)
+if OLD_REP:
+    # recorded_train_games.sav
+    recorded_games = joblib.load("sav/recorded_train_games.sav")
+    game_count = 0
+    for game in recorded_games:
+        if GAMES < SAVED_GAMES:
+            if game_count == 0:
+                print("Игра", game_count)
+            else:
+                print("Игра", GAMES)
         else:
-            print("Игра", GAMES)
-    else:
-        print("Игра", game_count * GAMES // 10)
-    canvas.fill((0, 0, 0))
-    frame = 0
-    done = False
-    while not done:
-        for i in pygame.event.get():
-            if i.type == pygame.QUIT:
+            print("Игра", game_count * GAMES // SAVED_GAMES)
+        canvas.fill((0, 0, 0))
+        frame = 0
+        done = False
+        while not done:
+            for i in pygame.event.get():
+                if i.type == pygame.QUIT:
+                    done = True
+            render(TIME, game[frame])
+            frame += 1
+            if frame == len(game):
                 done = True
-        render(TIME, game[frame])
-        frame += 1
-        if frame == len(game):
-            done = True
-    game_count += 1
+        game_count += 1
+else:
+    games = SAVED_GAMES + 1
+    if GAMES < SAVED_GAMES + 1:
+        games = 2
+    for i in range(games):
+        if GAMES < SAVED_GAMES + 1:
+            if i == 0:
+                print("Игра", i)
+            else:
+                print("Игра", GAMES)
+        else:
+            print("Игра", i * GAMES // SAVED_GAMES)
+        canvas.fill((0, 0, 0))
+        frame = 0
+        done = False
+        path = "rep/" + str(i) + ".sav"
+        game = joblib.load(path)
+        while not done:
+            for j in pygame.event.get():
+                if j.type == pygame.QUIT:
+                    done = True
+            render(TIME, game[frame])
+            frame += 1
+            if frame == len(game):
+                done = True
+
 
 # график обучения
 for i in range(TEAMS):
@@ -118,14 +146,14 @@ for i in range(TEAMS):
 
 plt.xlabel('Игра')
 plt.ylabel('Количество закрашенных клеток')
-plt.ylim(top=(SIZE*SIZE))
+plt.ylim(top=(SIZE*SIZE + 500))
 plt.show()
 
 # график кол-ва ходов
 plt.plot(moves_per_game, color=(1, 0, 0))
 plt.xlabel('Игра')
 plt.ylabel('Количество шагов')
-plt.ylim(top=(TIME_LIMIT))
+plt.ylim(top=(TIME_LIMIT + 500))
 plt.show()
 
 # график макс. и сред. значения очков в команде
@@ -159,5 +187,5 @@ for i in range(TEAMS):
 
 plt.xlabel('Игра')
 plt.ylabel('Количество очков')
-plt.ylim(bottom=-(10 *TIME_LIMIT), top=(10 * TIME_LIMIT))
+plt.ylim(bottom=-(2 *TIME_LIMIT + 500), top=(2 * TIME_LIMIT + 500))
 plt.show()

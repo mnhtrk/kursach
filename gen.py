@@ -1,5 +1,6 @@
 import random
-from params import RANDOM_SEED, POPULATION_SIZE, TOURN_SIZE, TEAMS, P_CROSSOVER, P_MUTATION, P_UNI_CROSSOVER
+from params import RANDOM_SEED, POPULATION_SIZE, TOURN_SIZE, TEAMS, P_CROSSOVER, P_MUTATION, P_UNI_CROSSOVER, \
+    BLEND_CROSS_ALPHA
 
 random.seed(RANDOM_SEED)
 
@@ -110,14 +111,14 @@ def mate_bin(populations, length_chrom, populations_alive):
                     agent2 = random.randint(0, POPULATION_SIZE - 1)
                 dot1 = random.randint(0, length_chrom - 3)
                 dot2 = random.randint(dot1 + 1, length_chrom - 2)
-                populations[population][agent1].weights = \
-                    populations[population][agent1].weights[:dot1] + \
-                    populations[population][agent2].weights[dot1:dot2] + \
-                    populations[population][agent1].weights[dot2:]
-                populations[population][agent2].weights = \
-                    populations[population][agent2].weights[:dot1] + \
-                    populations[population][agent1].weights[dot1:dot2] + \
-                    populations[population][agent2].weights[dot2:]
+                new_w1 = populations[population][agent1].weights[:dot1] + \
+                         populations[population][agent2].weights[dot1:dot2] + \
+                         populations[population][agent1].weights[dot2:]
+                new_w2 = populations[population][agent2].weights[:dot1] + \
+                         populations[population][agent1].weights[dot1:dot2] + \
+                         populations[population][agent2].weights[dot2:]
+                populations[population][agent1].weights = new_w1
+                populations[population][agent2].weights = new_w2
 
 
 # равномерное скрещивание
@@ -128,11 +129,17 @@ def mate_uni(populations, length_chrom, populations_alive):
                 agent2 = random.randint(0, POPULATION_SIZE - 1)
                 while agent2 == agent1 or not populations[population][agent2].alive:
                     agent2 = random.randint(0, POPULATION_SIZE - 1)
+                new_w1 = []
+                new_w2 = []
                 for i in range(length_chrom):
                     if random.uniform(0, 1) <= P_UNI_CROSSOVER:
-                        temp = populations[population][agent1].weights[i]
-                        populations[population][agent1].weights[i] = populations[population][agent2].weights[i]
-                        populations[population][agent2].weights[i] = temp
+                        new_w2.append(populations[population][agent1].weights[i])
+                        new_w1.append(populations[population][agent2].weights[i])
+                    else:
+                        new_w1.append(populations[population][agent1].weights[i])
+                        new_w2.append(populations[population][agent2].weights[i])
+                populations[population][agent1].weights = new_w1
+                populations[population][agent2].weights = new_w2
 
 
 # скрещивание смешением
@@ -143,17 +150,21 @@ def mate_blend(populations, length_chrom, populations_alive):
                 agent2 = random.randint(0, POPULATION_SIZE - 1)
                 while agent2 == agent1 or not populations[population][agent2].alive:
                     agent2 = random.randint(0, POPULATION_SIZE - 1)
+                new_w1 = []
+                new_w2 = []
                 for i in range(length_chrom):
                     temp_p1 = min(populations[population][agent1].weights[i], populations[population][agent2].weights[i])
                     temp_p2 = max(populations[population][agent1].weights[i], populations[population][agent2].weights[i])
-                    p1 = temp_p1 - 0.5 * (temp_p2 - temp_p1)
-                    p2 = temp_p1 + 0.5 * (temp_p2 - temp_p1)
+                    p1 = temp_p1 - BLEND_CROSS_ALPHA * (temp_p2 - temp_p1)
+                    p2 = temp_p1 + BLEND_CROSS_ALPHA * (temp_p2 - temp_p1)
                     if p1 < -1.0:
                         p1 = -1.0
                     if p2 > 1.0:
                         p2 = 1.0
-                    populations[population][agent1].weights[i] = random.uniform(p1, p2)
-                    populations[population][agent2].weights[i] = random.uniform(p1, p2)
+                    new_w1.append(random.uniform(p1, p2))
+                    new_w2.append(random.uniform(p1, p2))
+                populations[population][agent1].weights = new_w1
+                populations[population][agent2].weights = new_w2
 
 # мутация
 def mutate(populations, length_chrom):
